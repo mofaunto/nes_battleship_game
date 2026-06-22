@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -17,7 +17,7 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-export function GameProvider({ children }: { children: ReactNode }) {
+export function GameProvider({ children }: { children: React.ReactNode }) {
   const [player, setPlayer] = useState<PlayerInfo | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const isConnecting = useRef(false);
