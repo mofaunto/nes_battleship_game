@@ -1,21 +1,18 @@
-import { useEffect, useState } from 'react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import StartScreen from './components/StartScreen';
 
 function App() {
-  const [status, setStatus] = useState('Connecting...');
-
-  useEffect(() => {
-    fetch(`${API_URL}/health`)
-      .then((res) => res.json())
-      .then((data) => setStatus(`Backend is ${data.status}`))
-      .catch(() => setStatus('Backend unreachable'));
-  }, []);
-
   return (
-    <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-      <h1>Battleship</h1>
-      <p>{status}</p>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        width: '100%',
+        backgroundColor: '#0078F8',
+      }}
+    >
+      <StartScreen />
     </div>
   );
 }

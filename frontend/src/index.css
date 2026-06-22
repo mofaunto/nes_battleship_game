@@ -53,9 +53,10 @@
 #root {
   width: 1126px;
   max-width: 100%;
-  margin: 0 auto;
+  /* margin: 0 auto; */
   text-align: center;
   min-height: 100svh;
+  min-width: 100svw;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
