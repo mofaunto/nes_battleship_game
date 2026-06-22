@@ -1,6 +1,17 @@
 import StartScreen from './components/StartScreen';
+import Lobby from './components/Lobby';
+import { useGame } from './context/GameContext';
+import { useEffect } from 'react';
 
 function App() {
+  const { player, connectSocket } = useGame();
+
+  useEffect(() => {
+    if (player) {
+      connectSocket();
+    }
+  }, [player, connectSocket]);
+
   return (
     <div
       style={{
@@ -12,7 +23,7 @@ function App() {
         backgroundColor: '#0078F8',
       }}
     >
-      <StartScreen />
+      {player ? <Lobby /> : <StartScreen />}
     </div>
   );
 }

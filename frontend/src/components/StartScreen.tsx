@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-
+import { useGame } from '../context/GameContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -9,6 +9,7 @@ export default function StartScreen() {
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { setPlayer } = useGame();
 
   const validationMessage = useMemo(() => {
     if (name.length > 0 && name.includes(' ')) {
@@ -40,6 +41,7 @@ export default function StartScreen() {
       const data = await res.json();
       setDisplayName(data.displayName);
       setIsNameSet(true);
+      setPlayer({ displayName: data.displayName });
     } catch (err) {
       // Properly type the error without using `any`
       const message =
