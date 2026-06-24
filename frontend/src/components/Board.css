@@ -1,0 +1,90 @@
+.board-wrapper {
+  display: inline-block;
+  text-align: center;
+}
+
+.board-label {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+
+.board-grid {
+  display: grid;
+  gap: 2px;
+  background-color: #212529;
+  border: 3px solid #212529;
+  box-shadow: 0 0 0 3px #212529;
+  padding-right: 4px
+}
+
+.cell {
+  width: 40px;
+  height: 40px;
+  background-color: #adadad;
+  border: 2px solid #000;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.cell.header {
+  background-color: #212529;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.6rem;
+  border: none;
+  cursor: default;
+}
+
+.cell.empty {
+  background-color: #adadad;
+}
+
+.cell.ship {
+  background-color: #3a6ea5;
+}
+
+.cell.hit {
+  background-color: #e76e55;
+  position: relative;
+}
+
+.cell.hit::after {
+  content: '✕';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.2rem;
+  color: #fff;
+  font-weight: bold;
+}
+
+.cell.miss {
+  background-color: #bfccd6;
+  position: relative;
+}
+
+.cell.miss::after {
+  content: '•';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.cell:not(.header):hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.cell.preview {
+  background-color: #6bbe6b;
+  opacity: 0.7;
+}
