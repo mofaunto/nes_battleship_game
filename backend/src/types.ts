@@ -27,4 +27,5 @@ export interface Game {
   ready: Set<string>;
   deadline?: NodeJS.Timeout;
   currentTurn?: string;
+  shipPositions?: Map<string, Map<string, [number, number][]>>;
 }

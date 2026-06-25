@@ -1,6 +1,7 @@
 .board-wrapper {
   display: inline-block;
   text-align: center;
+  width: 100%;
 }
 
 .board-label {
@@ -16,7 +17,7 @@
   background-color: #212529;
   border: 3px solid #212529;
   box-shadow: 0 0 0 3px #212529;
-  padding-right: 4px
+  padding-right: 4px;
 }
 
 .cell {
@@ -27,6 +28,11 @@
   box-sizing: border-box;
   cursor: pointer;
   transition: background-color 0.1s;
+
+  @media (max-width: 768px) {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 .cell.header {

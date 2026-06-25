@@ -3,13 +3,15 @@ import StartScreen from './components/StartScreen';
 import Lobby from './components/Lobby';
 import PlacementScreen from './components/PlacementScreen';
 import { useGame } from './context/GameContext';
+import Battle from './components/Battle';
 
 interface GameStartData {
   gameId: string;
-  phase: string; // 'placing' initially
+  phase: string;
   players: string[];
   gridSize: number;
   deadline: number;
+  currentTurn?: string;
 }
 
 function App() {
@@ -24,23 +26,28 @@ function App() {
 
   useEffect(() => {
     if (!socket) return;
+
     const handleGameStart = (data: GameStartData) => {
       setGame(data);
     };
+
     const handlePlacementTimeout = () => {
       setGame(null);
       alert('Placement time expired.');
     };
+    
     const handleOpponentDisconnected = () => {
       setGame(null);
       alert('Opponent disconnected.');
     };
-    // Also listen for game-phase transition (to playing) for future use
-    const handleGamePhase = (data: { phase: string }) => {
-      if (data.phase === 'playing' && game) {
-        // We'll transition to battle screen (yet to be built)
-        // For now just log
-        console.log('Game phase changed to playing');
+
+    const handleGamePhase = (data: { phase: string; currentTurn: string; players: string[] }) => {
+      if (data.phase === 'playing') {
+        setGame(prev => prev ? {
+          ...prev,
+          phase: 'playing',
+          currentTurn: data.currentTurn,
+        } : null);
       }
     };
 
@@ -57,7 +64,6 @@ function App() {
   }, [socket, game]);
 
   const handleLeaveGame = () => {
-    // TODO: emit 'leave-game' to server if needed
     setGame(null);
   };
 
@@ -67,7 +73,7 @@ function App() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        minHeight: '100vh',
+        minHeight: '100svh',
         width: '100%',
         backgroundColor: '#0078F8',
       }}
@@ -82,8 +88,13 @@ function App() {
             onTimeout={handleLeaveGame}
           />
         ) : (
-          // placeholder for battle screen
-          <div>Battle</div>
+          <Battle
+            gameId={game.gameId}
+            players={game.players}
+            gridSize={game.gridSize}
+            currentTurn={game.currentTurn!}
+            onLeave={handleLeaveGame}
+          />
         )
       ) : player ? (
         <Lobby />

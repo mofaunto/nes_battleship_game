@@ -1,3 +1,4 @@
+import React from 'react';
 import './Board.css';
 export type CellState = 'empty' | 'ship' | 'hit' | 'miss' | 'preview';
 
@@ -44,8 +45,8 @@ export default function Board({
           <div key={`col-${col}`} className="cell header">{col + 1}</div>
         ))}
         {board.map((rowCells, row) => (
-          <>
-            <div key={`row-${row}`} className="cell header">{ROW_LABELS[row]}</div>
+          <React.Fragment key={`row-${row}`}>
+            <div key={`row-${row}-label`} className="cell header">{ROW_LABELS[row]}</div>
             {rowCells.map((cell, col) => {
               let cellClass = 'cell';
               if (isPreview(row, col)) {
@@ -65,7 +66,7 @@ export default function Board({
                 />
               );
             })}
-          </>
+          </React.Fragment>
         ))}
       </div>
     </div>

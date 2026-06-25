@@ -25,9 +25,7 @@ export default function PlacementScreen({
   onTimeout,
 }: PlacementScreenProps) {
   const { socket } = useGame();
-  const [board, setBoard] = useState<CellState[][]>(() =>
-    Array.from({ length: gridSize }, () => Array(gridSize).fill('empty'))
-  );
+  const [board, setBoard] = useState<CellState[][]>(() => Array.from({ length: gridSize }, () => Array(gridSize).fill('empty')));
   const [placedShips, setPlacedShips] = useState<Map<string, number[][]>>(new Map());
   const [selectedShipType, setSelectedShipType] = useState<string | null>(null);
   const [shipId, setShipId] = useState<number | null>(null);
@@ -40,8 +38,6 @@ export default function PlacementScreen({
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    // setTimeLeft(Math.max(0, Math.floor((deadline - Date.now()) / 1000)));
-
     const update = () => {
       const remaining = Math.max(0, Math.floor((deadline - Date.now()) / 1000));
       setTimeLeft(remaining);
@@ -58,11 +54,25 @@ export default function PlacementScreen({
 
   const [previewCells, setPreviewCells] = useState<[number, number][]>([]);
 
-  const generatePreview = useCallback(
-    (row: number, col: number, type: string) => {
+  const hasConflict = useCallback((r: number, c: number, boardSnapshot: CellState[][]) => {
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const nr = r + dr, nc = c + dc;
+          if (nr >= 0 && nr < gridSize && nc >= 0 && nc < gridSize && boardSnapshot[nr][nc] === 'ship') {
+            return true;
+          }
+        }
+      }
+      return false;
+    },
+    [gridSize]
+  );
+
+  const generatePreview = useCallback((row: number, col: number, type: string) => {
       const ship = SHIPS.find(s => s.name === type);
       if (!ship) return [];
       const cells: [number, number][] = [];
+      
       for (let i = 0; i < ship.size; i++) {
         const r = orientation === 'vertical' ? row + i : row;
         const c = orientation === 'horizontal' ? col + i : col;
@@ -72,10 +82,15 @@ export default function PlacementScreen({
           return [];
         }
       }
-      if (cells.some(([r, c]) => board[r][c] === 'ship')) return [];
+
+      for (const [r, c] of cells) {
+        if (board[r][c] === 'ship' || hasConflict(r, c, board)) {
+          return [];
+        }
+      }
       return cells;
     },
-    [orientation, board, gridSize]
+    [orientation, board, gridSize, hasConflict]
   );
 
   const handleBoardClick = (row: number, col: number) => {
@@ -84,7 +99,7 @@ export default function PlacementScreen({
 
     const preview = generatePreview(row, col, selectedShipType);
     if (preview.length === 0) {
-      setError('Invalid placement (out of bounds or overlap)');
+      setError('Invalid placement (out of bounds, overlap, or too close to another ship)');
       return;
     }
 
@@ -128,52 +143,52 @@ export default function PlacementScreen({
   };
 
   const handleRandomPlace = () => {
-    const newBoard = Array.from({ length: gridSize }, () => Array(gridSize).fill('empty') as CellState[]);
-    const newPlaced = new Map<string, number[][]>();
-    const shipList = [...SHIPS];
+  const newBoard = Array.from({ length: gridSize }, () => Array(gridSize).fill('empty') as CellState[]);
+  const newPlaced = new Map<string, number[][]>();
 
-    const placeShip = (ship: typeof SHIPS[0]) => {
-      const maxAttempts = 100;
-      for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        const horiz = Math.random() < 0.5;
-        const o = horiz ? 'horizontal' : 'vertical';
-        const row = Math.floor(Math.random() * gridSize);
-        const col = Math.floor(Math.random() * gridSize);
-        const cells: [number, number][] = [];
-        let valid = true;
-        for (let i = 0; i < ship.size; i++) {
-          const r = o === 'vertical' ? row + i : row;
-          const c = o === 'horizontal' ? col + i : col;
-          if (r >= gridSize || c >= gridSize || newBoard[r][c] !== 'empty') {
-            valid = false;
-            break;
-          }
-          cells.push([r, c]);
+  const placeShip = (ship: typeof SHIPS[0]) => {
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const horiz = Math.random() < 0.5;
+      const o = horiz ? 'horizontal' : 'vertical';
+      const row = Math.floor(Math.random() * gridSize);
+      const col = Math.floor(Math.random() * gridSize);
+      const cells: [number, number][] = [];
+
+      let valid = true;
+      for (let i = 0; i < ship.size; i++) {
+        const r = o === 'vertical' ? row + i : row;
+        const c = o === 'horizontal' ? col + i : col;
+        if (r >= gridSize || c >= gridSize || newBoard[r][c] !== 'empty' || hasConflict(r, c, newBoard)) {
+          valid = false;
+          break;
         }
-        if (valid) {
-          for (const [r, c] of cells) {
-            newBoard[r][c] = 'ship';
-          }
-          newPlaced.set(ship.name, cells);
-          return true;
-        }
+        cells.push([r, c]);
       }
-      return false;
-    };
 
-    for (const ship of shipList) {
-      if (!placeShip(ship)) {
-        setError('Random placement failed, try again or place manually.');
-        return;
+      if (valid) {
+        for (const [r, c] of cells) {
+          newBoard[r][c] = 'ship';
+        }
+        newPlaced.set(ship.name, cells);
+        return true;
       }
     }
-
-    setBoard(newBoard);
-    setPlacedShips(newPlaced);
-    setSelectedShipType(null);
-    setShipId(null);
-    setError('');
+    return false;
   };
+
+  for (const ship of SHIPS) {
+    if (!placeShip(ship)) {
+      setError('Random placement failed, try again or place manually.');
+      return;
+    }
+  }
+
+  setBoard(newBoard);
+  setPlacedShips(newPlaced);
+  setSelectedShipType(null);
+  setShipId(null);
+  setError('');
+};
 
   const handleReady = () => {
     if (placedShips.size !== SHIPS.length) return;
@@ -183,18 +198,17 @@ export default function PlacementScreen({
 
   useEffect(() => {
     if (!socket) return;
+
     const handlePlacementError = (msg: string) => {
       setError(msg);
       setWaiting(false);
     };
+
     const handlePlacementAccepted = () => {
       setReady(true);
       setWaiting(true);
     };
 
-    // const handleGamePhase = (_data: { phase: string }) => {
-
-    // };
     const handleOpponentDisconnected = () => {
       setError('Opponent disconnected');
       setWaiting(false);
@@ -202,13 +216,11 @@ export default function PlacementScreen({
 
     socket.on('placement-error', handlePlacementError);
     socket.on('placement-accepted', handlePlacementAccepted);
-    // socket.on('game-phase', handleGamePhase);
     socket.on('opponent-disconnected', handleOpponentDisconnected);
 
     return () => {
       socket.off('placement-error', handlePlacementError);
       socket.off('placement-accepted', handlePlacementAccepted);
-      // socket.off('game-phase', handleGamePhase);
       socket.off('opponent-disconnected', handleOpponentDisconnected);
     };
   }, [socket, gameId]);
